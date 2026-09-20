@@ -1,0 +1,15 @@
+required:
+  - id
+  - type
+  - title
+  - created
+  - updated
+allowed_types:
+  - source
+  - entity
+  - concept
+  - pending
+concept_minimum_independent_sources: 2
+require_bidirectional_links: true
+require_claim_citations: true
+
