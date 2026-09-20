@@ -1,0 +1,72 @@
+[project]
+name = "llm-wiki-agent-api"
+version = "0.1.0"
+description = "Knowledge-compiling LLM Wiki Agent API"
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+  "alembic>=1.14,<2",
+  "argon2-cffi>=23.1,<26",
+  "celery[redis]>=5.4,<6",
+  "cryptography>=44,<47",
+  "email-validator>=2.2,<3",
+  "fastapi>=0.116,<1",
+  "httpx>=0.28,<1",
+  "langchain-core>=0.3,<2",
+  "langchain-openai>=0.3,<2",
+  "langgraph>=0.6,<2",
+  "langgraph-checkpoint-postgres>=2,<4",
+  "pgvector>=0.3,<1",
+  "psycopg[binary]>=3.2,<4",
+  "pydantic-settings>=2.8,<3",
+  "pyjwt>=2.10,<3",
+  "python-multipart>=0.0.20,<1",
+  "pyyaml>=6,<7",
+  "sqlalchemy>=2.0,<3",
+  "sse-starlette>=2.2,<4",
+  "uvicorn[standard]>=0.34,<1",
+]
+
+[project.optional-dependencies]
+document-parsing = [
+  "beautifulsoup4>=4.13,<5",
+  "docling>=2.50,<3",
+  "pymupdf>=1.26,<2",
+  "python-docx>=1.2,<2",
+  "torch>=2.2.2,<3",
+  "torchvision>=0,<1",
+]
+
+[dependency-groups]
+dev = [
+  "mypy>=1.15,<2",
+  "pytest>=8.3,<9",
+  "pytest-asyncio>=0.25,<1",
+  "ruff>=0.11,<1",
+  "types-pyyaml>=6,<7",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wiki_agent"]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchvision = { index = "pytorch-cpu" }
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["wiki_agent"]
+
+[[tool.mypy.overrides]]
+module = ["celery", "celery.*"]
+ignore_missing_imports = true

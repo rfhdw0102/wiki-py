@@ -1,0 +1,63 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Operating system and editor files
+.DS_Store
+.idea/
+.vscode/
+Thumbs.db
+
+# Python caches, environments, and build output
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+.nox/
+.tox/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+
+# Coverage and profiling output
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.prof
+*.lprof
+
+# Local databases, logs, and worker state
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.log
+logs/
+celerybeat-schedule*
+
+# Node.js dependencies and generated output
+*.tsbuildinfo
+node_modules/
+.next/
+.pnpm-store/
+.turbo/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime source objects and generated Wiki content
+storage/sources/*
+!storage/sources/.gitkeep
+knowledge/.git/
+knowledge/wiki/**
+!knowledge/wiki/**/
+!knowledge/wiki/**/.gitkeep

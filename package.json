@@ -1,0 +1,13 @@
+{
+  "name": "llm-wiki-agent",
+  "private": true,
+  "packageManager": "pnpm@10.15.1",
+  "scripts": {
+    "dev:user": "pnpm --filter @wiki-agent/user-web dev",
+    "dev:admin": "pnpm --filter @wiki-agent/admin-web dev",
+    "build:web": "pnpm --filter @wiki-agent/user-web --filter @wiki-agent/admin-web build",
+    "lint:web": "pnpm -r lint",
+    "test:web": "pnpm -r test"
+  }
+}
+
