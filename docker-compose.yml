@@ -1,0 +1,146 @@
+name: llm-wiki-agent
+
+services:
+  postgres:
+    image: ${PARADEDB_IMAGE:-paradedb/paradedb:latest}
+    environment:
+      POSTGRES_DB: wiki
+      POSTGRES_USER: wiki
+      POSTGRES_PASSWORD: wiki
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./infra/docker/postgres-init.sql:/docker-entrypoint-initdb.d/10-extensions.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wiki -d wiki"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    image: llm-wiki-agent-api:latest
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    env_file: .env
+    environment:
+      WIKI_AGENT_AUTO_CREATE_SCHEMA: "false"
+    command:
+      - /bin/sh
+      - -c
+      - cd /app/apps/api && alembic upgrade head && uvicorn wiki_agent.main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - ./knowledge:/app/knowledge
+      - ./storage:/app/storage
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    image: llm-wiki-agent-api:latest
+    env_file: .env
+    environment:
+      WIKI_AGENT_AUTO_CREATE_SCHEMA: "false"
+    command:
+      [
+        "celery",
+        "-A",
+        "wiki_agent.worker:celery_app",
+        "worker",
+        "--loglevel=INFO",
+        "--queues=default",
+      ]
+    volumes:
+      - ./knowledge:/app/knowledge
+      - ./storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  parser-worker:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      args:
+        UV_SYNC_EXTRAS: "--extra document-parsing"
+    env_file: .env
+    environment:
+      WIKI_AGENT_AUTO_CREATE_SCHEMA: "false"
+    command:
+      [
+        "celery",
+        "-A",
+        "wiki_agent.worker:celery_app",
+        "worker",
+        "--loglevel=INFO",
+        "--queues=parser",
+        "--concurrency=1",
+      ]
+    volumes:
+      - ./knowledge:/app/knowledge
+      - ./storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  user-web:
+    build:
+      context: .
+      dockerfile: apps/user-web/Dockerfile
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://127.0.0.1:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  admin-web:
+    build:
+      context: .
+      dockerfile: apps/admin-web/Dockerfile
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+      PORT: "3001"
+    ports:
+      - "3001:3001"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://127.0.0.1:3001"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  postgres-data:
+  redis-data:
