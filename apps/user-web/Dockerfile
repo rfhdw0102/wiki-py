@@ -10,7 +10,6 @@ WORKDIR /app
 FROM base AS dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/user-web/package.json apps/user-web/package.json
-COPY apps/admin-web/package.json apps/admin-web/package.json
 COPY packages/web-ui/package.json packages/web-ui/package.json
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile --filter @wiki-agent/user-web...
