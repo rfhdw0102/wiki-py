@@ -13,19 +13,20 @@ class ModelConfigurationError(ValueError):
 
 
 class ModelFactory:
-    def __init__(self, db: Session, settings: Settings) -> None:
+    def __init__(self, db: Session, settings: Settings, user_id: str) -> None:
         self.db = db
         self.settings = settings
+        self.user_id = user_id
 
-    def chat(self, profile_id: str) -> ChatOpenAI:
+    def chat(self, profile_id: str, *, timeout_seconds: int = 60) -> ChatOpenAI:
         profile = self._profile(profile_id, ModelKind.CHAT)
         return ChatOpenAI(
             model=profile.model_name,
             base_url=profile.base_url,
             api_key=SecretStr(self._api_key(profile)),
-            timeout=_number(profile, "timeout_seconds", 60),
-            max_retries=_integer(profile, "max_retries", 2),
-            temperature=_number(profile, "temperature", 0),
+            timeout=timeout_seconds,
+            max_retries=2,
+            temperature=0,
         )
 
     def embeddings(self, profile_id: str) -> OpenAIEmbeddings:
@@ -34,25 +35,22 @@ class ModelFactory:
             model=profile.model_name,
             base_url=profile.base_url,
             api_key=SecretStr(self._api_key(profile)),
-            timeout=_number(profile, "timeout_seconds", 60),
-            max_retries=_integer(profile, "max_retries", 2),
+            timeout=60,
+            max_retries=2,
         )
 
     def reranker(self, profile_id: str) -> HttpReranker:
         profile = self._profile(profile_id, ModelKind.RERANKER)
-        endpoint = profile.config.get("endpoint", "/rerank")
-        if not isinstance(endpoint, str):
-            raise ModelConfigurationError(f"{profile.name}.endpoint must be a string")
         return HttpReranker(
             base_url=profile.base_url,
             api_key=self._api_key(profile),
             model=profile.model_name,
-            endpoint=endpoint,
-            timeout_seconds=_number(profile, "timeout_seconds", 60),
+            endpoint="/rerank",
+            timeout_seconds=60,
         )
 
     def assigned_profile_id(self, purpose: str) -> str | None:
-        assignment = self.db.get(ModelAssignment, purpose)
+        assignment = self.db.get(ModelAssignment, (self.user_id, purpose))
         return assignment.model_profile_id if assignment is not None else None
 
     def _api_key(self, profile: ModelProfile) -> str:
@@ -60,7 +58,7 @@ class ModelFactory:
 
     def _profile(self, profile_id: str, expected_kind: ModelKind) -> ModelProfile:
         profile = self.db.get(ModelProfile, profile_id)
-        if profile is None:
+        if profile is None or profile.owner_id != self.user_id:
             raise ModelConfigurationError("model profile not found")
         if not profile.enabled:
             raise ModelConfigurationError("model profile is disabled")
@@ -69,17 +67,3 @@ class ModelFactory:
                 f"expected a {expected_kind.value} profile, got {profile.kind.value}"
             )
         return profile
-
-
-def _number(profile: ModelProfile, key: str, default: float) -> float:
-    value = profile.config.get(key, default)
-    if isinstance(value, bool) or not isinstance(value, int | float):
-        raise ModelConfigurationError(f"{profile.name}.{key} must be a number")
-    return float(value)
-
-
-def _integer(profile: ModelProfile, key: str, default: int) -> int:
-    value = profile.config.get(key, default)
-    if isinstance(value, bool) or not isinstance(value, int):
-        raise ModelConfigurationError(f"{profile.name}.{key} must be an integer")
-    return value
