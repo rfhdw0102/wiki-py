@@ -5,7 +5,7 @@ from pathlib import PurePosixPath
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator, model_validator
 
 FRONTMATTER_SEPARATOR = "---"
 WIKI_LINK_PATTERN = re.compile(r"\[\[([a-z0-9][a-z0-9/_-]*)\]\]")
@@ -65,7 +65,7 @@ class WikiPage(BaseModel):
     body: str = Field(min_length=1)
 
     @model_validator(mode="after")
-    def validate_citations(self) -> "WikiPage":
+    def validate_citations(self, info: ValidationInfo) -> "WikiPage":
         if DANGEROUS_MARKDOWN_PATTERN.search(self.body):
             raise ValueError("Wiki page contains unsafe HTML or a dangerous link scheme")
         used = set(CITATION_PATTERN.findall(self.body))
@@ -76,8 +76,12 @@ class WikiPage(BaseModel):
         unused = declared - used
         if unused:
             raise ValueError(f"unused citations: {', '.join(sorted(unused))}")
-        if self.metadata.type is PageKind.CONCEPT and len(set(self.metadata.sources)) < 2:
-            raise ValueError("concept pages require at least two independent sources")
+        if self.metadata.type is PageKind.CONCEPT:
+            if info.context and info.context.get("stored_page"):
+                if not self.metadata.sources and not self.metadata.citations:
+                    raise ValueError("concept pages require at least one source")
+            elif len(set(self.metadata.sources)) < 2:
+                raise ValueError("concept pages require at least two independent sources")
         if self.metadata.type is PageKind.PENDING and self.metadata.status == "published":
             raise ValueError("pending pages cannot have published status")
         return self
@@ -97,7 +101,10 @@ class WikiPage(BaseModel):
         raw: Any = yaml.safe_load(frontmatter)
         if not isinstance(raw, dict):
             raise ValueError("Wiki page frontmatter must be an object")
-        return cls(metadata=PageMetadata.model_validate(raw), body=body.strip())
+        # Deletion may leave a stored concept with one source; creation still requires two.
+        return cls.model_validate(
+            {"metadata": raw, "body": body.strip()}, context={"stored_page": True},
+        )
 
     def to_markdown(self) -> str:
         data = self.metadata.model_dump(mode="json", exclude_none=True)

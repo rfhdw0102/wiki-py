@@ -1,8 +1,9 @@
 from collections.abc import Mapping
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from wiki_agent.models import SourceSpan
+from wiki_agent.models import Source, SourceRevision, SourceSpan
 from wiki_agent.wiki.schema import WikiPage
 
 
@@ -13,6 +14,8 @@ class CitationResolutionError(ValueError):
 def validate_citation_targets(
     files: Mapping[str, str | None],
     db: Session,
+    *,
+    wiki_id: str,
 ) -> None:
     missing: list[str] = []
     mismatched: list[str] = []
@@ -21,7 +24,18 @@ def validate_citation_targets(
             continue
         page = WikiPage.from_markdown(content)
         for key, citation in page.metadata.citations.items():
-            span = db.get(SourceSpan, citation.span_id)
+            span = db.scalar(
+                select(SourceSpan)
+                .join(
+                    SourceRevision,
+                    SourceRevision.id == SourceSpan.source_revision_id,
+                )
+                .join(Source, Source.id == SourceRevision.source_id)
+                .where(
+                    SourceSpan.id == citation.span_id,
+                    Source.wiki_id == wiki_id,
+                )
+            )
             reference = f"{path}#{key}"
             if span is None:
                 missing.append(f"{reference}->{citation.span_id}")

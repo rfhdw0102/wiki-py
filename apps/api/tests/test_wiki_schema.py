@@ -34,6 +34,21 @@ def test_concept_requires_two_sources() -> None:
         WikiPage(metadata=metadata(PageKind.CONCEPT), body="A concept.[^speed]")
 
 
+def test_stored_concept_can_retain_one_source_but_not_zero() -> None:
+    concept_metadata = metadata(PageKind.CONCEPT)
+    stored = WikiPage.model_construct(
+        metadata=concept_metadata, body="A concept.[^speed]",
+    ).to_markdown()
+    assert WikiPage.from_markdown(stored).metadata.sources == ["sources/manual.md"]
+    concept_metadata.sources = []
+    concept_metadata.citations = {}
+    unsupported = WikiPage.model_construct(
+        metadata=concept_metadata, body="A concept.",
+    ).to_markdown()
+    with pytest.raises(ValueError, match="at least one source"):
+        WikiPage.from_markdown(unsupported)
+
+
 def test_rejects_dangerous_markdown() -> None:
     with pytest.raises(ValueError, match="unsafe HTML"):
         WikiPage(
