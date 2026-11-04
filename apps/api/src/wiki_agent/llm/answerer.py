@@ -2,6 +2,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
+from wiki_agent.llm.structured import invoke_structured
 from wiki_agent.search.fusion import FusedHit
 
 
@@ -25,8 +26,9 @@ class WikiAnswerer:
                 insufficient_evidence=True,
             )
         evidence = _render_evidence(hits, self.max_evidence_characters)
-        structured_model = self.model.with_structured_output(AnswerResult)
-        response = structured_model.invoke(
+        response = invoke_structured(
+            self.model,
+            AnswerResult,
             [
                 SystemMessage(
                     content=(
@@ -46,8 +48,10 @@ class WikiAnswerer:
                 ),
             ]
         )
-        answer = response if isinstance(response, AnswerResult) else AnswerResult.model_validate(
+        answer = (
             response
+            if isinstance(response, AnswerResult)
+            else AnswerResult.model_validate(response)
         )
         allowed = {hit.document_id for hit in hits}
         unknown = set(answer.citations) - allowed
@@ -65,8 +69,10 @@ def _render_evidence(hits: list[FusedHit], max_characters: int) -> str:
     blocks: list[str] = []
     used = 0
     for hit in hits:
+        layer = hit.metadata.get("layer", "wiki")
         block = (
-            f'<DOCUMENT id="{hit.document_id}" channels="{",".join(hit.channels)}">\n'
+            f'<DOCUMENT id="{hit.document_id}" layer="{layer}" '
+            f'channels="{",".join(hit.channels)}">\n'
             f"{hit.content}\n"
             "</DOCUMENT>"
         )

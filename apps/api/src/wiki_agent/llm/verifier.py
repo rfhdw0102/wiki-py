@@ -4,6 +4,8 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
+from wiki_agent.llm.structured import invoke_structured
+
 
 class VerificationResult(BaseModel):
     passed: bool
@@ -25,8 +27,9 @@ class WikiVerifier:
                 passed=False,
                 issues=["Draft exceeds the independent verifier context limit."],
             )
-        structured_model = self.model.with_structured_output(VerificationResult)
-        response = structured_model.invoke(
+        response = invoke_structured(
+            self.model,
+            VerificationResult,
             [
                 SystemMessage(
                     content=(
