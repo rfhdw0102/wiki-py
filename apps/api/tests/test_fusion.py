@@ -1,4 +1,9 @@
-from wiki_agent.search.fusion import RankedHit, reciprocal_rank_fusion
+from wiki_agent.search.fusion import (
+    FusedHit,
+    RankedHit,
+    merge_fused_hits,
+    reciprocal_rank_fusion,
+)
 
 
 def hit(document_id: str, channel: str, rank: int) -> RankedHit:
@@ -24,3 +29,30 @@ def test_rrf_validates_configuration() -> None:
     else:
         raise AssertionError("expected invalid rank constant to fail")
 
+
+def test_merge_fused_hits_preserves_wiki_and_raw_evidence() -> None:
+    results = merge_fused_hits(
+        [
+            (
+                "wiki",
+                [FusedHit("wiki-page", 0.02, ("bm25",), "Wiki", {})],
+            ),
+            (
+                "raw",
+                [
+                    FusedHit(
+                        "raw:span",
+                        0.03,
+                        ("raw_bm25", "raw_vector"),
+                        "Raw",
+                        {},
+                    )
+                ],
+            ),
+        ],
+        limit=10,
+    )
+
+    assert [hit.document_id for hit in results] == ["raw:span", "wiki-page"]
+    assert results[0].metadata["layer"] == "raw"
+    assert results[1].metadata["layer"] == "wiki"

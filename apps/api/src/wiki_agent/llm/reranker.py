@@ -1,3 +1,4 @@
+import json
 from dataclasses import replace
 
 import httpx
@@ -5,7 +6,15 @@ import httpx
 from wiki_agent.search.fusion import FusedHit
 
 
-class RerankerResponseError(RuntimeError):
+class RerankerError(RuntimeError):
+    pass
+
+
+class RerankerRequestError(RerankerError):
+    pass
+
+
+class RerankerResponseError(RerankerError):
     pass
 
 
@@ -27,19 +36,22 @@ class HttpReranker:
     def rerank(self, query: str, hits: list[FusedHit], limit: int) -> list[FusedHit]:
         if not hits:
             return []
-        response = httpx.post(
-            self.url,
-            headers={"Authorization": f"Bearer {self.api_key}"},
-            json={
-                "model": self.model,
-                "query": query,
-                "documents": [hit.content for hit in hits],
-                "top_n": min(limit, len(hits)),
-            },
-            timeout=self.timeout_seconds,
-        )
-        response.raise_for_status()
-        payload = response.json()
+        try:
+            response = httpx.post(
+                self.url,
+                headers={"Authorization": f"Bearer {self.api_key}"},
+                json={
+                    "model": self.model,
+                    "query": query,
+                    "documents": [hit.content for hit in hits],
+                    "top_n": min(limit, len(hits)),
+                },
+                timeout=self.timeout_seconds,
+            )
+            response.raise_for_status()
+            payload = response.json()
+        except (httpx.HTTPError, json.JSONDecodeError) as exc:
+            raise RerankerRequestError("reranker request failed") from exc
         results = payload.get("results")
         if not isinstance(results, list):
             raise RerankerResponseError("reranker response has no results array")
