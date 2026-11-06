@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from wiki_agent.models import SourceKind
+from wiki_agent.sources.article import extract_web_article
 
 
 class ComplexDocumentError(ValueError):
@@ -30,11 +31,20 @@ class ParsedDocument:
 
 
 class DocumentParser:
-    def parse(self, path: Path, kind: SourceKind) -> ParsedDocument:
+    def parse(
+        self, path: Path, kind: SourceKind, *,
+        source_url: str | None = None, media_type: str = "text/html",
+    ) -> ParsedDocument:
         if kind in {SourceKind.MARKDOWN, SourceKind.TEXT}:
             return self._parse_text(path, kind)
+        if kind is SourceKind.WEBSITE:
+            article = extract_web_article(path.read_bytes(), source_url or "", media_type)
+            return ParsedDocument(
+                title=article.title, markdown=article.markdown,
+                sections=_split_sections(article.markdown), parser=article.extractor,
+            )
         try:
-            if kind in {SourceKind.HTML, SourceKind.WEBSITE}:
+            if kind is SourceKind.HTML:
                 return self._parse_html(path)
             if kind is SourceKind.DOCX:
                 return self._parse_docx(path)

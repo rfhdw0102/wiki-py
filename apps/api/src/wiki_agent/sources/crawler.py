@@ -1,5 +1,6 @@
 import fnmatch
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from urllib.parse import ParseResult, urldefrag, urljoin, urlparse
@@ -8,23 +9,24 @@ from urllib.robotparser import RobotFileParser
 import httpx
 from pydantic import AnyHttpUrl, BaseModel, Field
 
-from wiki_agent.sources.fetcher import FetchedPage, fetch_page
+from wiki_agent.sources.article import WebArticle, WebContentError, extract_web_article
+from wiki_agent.sources.fetcher import FetchedPage, UnsafeSourceUrlError, fetch_page
 
 CRAWLER_USER_AGENT = "LLMWikiAgent"
 
 
 class CrawlRequest(BaseModel):
     url: AnyHttpUrl
-    max_depth: int = Field(default=1, ge=0, le=5)
-    max_pages: int = Field(default=20, ge=1, le=100)
+    max_depth: int = Field(default=0, ge=0, le=5)
+    max_pages: int = Field(default=1, ge=1, le=100)
     include_patterns: list[str] = Field(default_factory=list, max_length=20)
     exclude_patterns: list[str] = Field(default_factory=list, max_length=20)
 
 
 @dataclass(frozen=True)
 class CrawlPolicy:
-    max_depth: int = 1
-    max_pages: int = 20
+    max_depth: int = 0
+    max_pages: int = 1
     include_patterns: tuple[str, ...] = ()
     exclude_patterns: tuple[str, ...] = ()
 
@@ -39,11 +41,18 @@ class CrawlPolicy:
 class CrawlError:
     url: str
     error: str
+    code: str = "fetch_failed"
+
+
+@dataclass(frozen=True)
+class CrawledPage(FetchedPage):
+    article: WebArticle
+    acquisition: str
 
 
 @dataclass(frozen=True)
 class CrawlResult:
-    pages: tuple[FetchedPage, ...]
+    pages: tuple[CrawledPage, ...]
     errors: tuple[CrawlError, ...]
 
 
@@ -60,26 +69,66 @@ class _LinkParser(HTMLParser):
             self.links.append(href)
 
 
-def crawl_site(start_url: str, policy: CrawlPolicy) -> CrawlResult:
+def crawl_site(
+    start_url: str, policy: CrawlPolicy,
+    *, render_page: Callable[[str], FetchedPage] | None = None,
+) -> CrawlResult:
     root = _canonicalize(start_url)
     root_parsed = urlparse(root)
     robots = _load_robots(root_parsed)
     queue = deque([(root, 0)])
     queued = {root}
-    pages: list[FetchedPage] = []
+    pages: list[CrawledPage] = []
     errors: list[CrawlError] = []
 
-    while queue and len(pages) < policy.max_pages:
+    attempts = 0
+    while queue and attempts < policy.max_pages:
         url, depth = queue.popleft()
+        attempts += 1
         if not robots.can_fetch(CRAWLER_USER_AGENT, url):
-            errors.append(CrawlError(url=url, error="Blocked by robots.txt"))
+            errors.append(CrawlError(
+                url=url, error="网站的采集规则禁止自动读取该页面。", code="robots_blocked",
+            ))
             continue
+        acquisition = "http"
         try:
             page = fetch_page(url)
-        except (httpx.HTTPError, OSError, ValueError) as exc:
-            errors.append(CrawlError(url=url, error=f"{type(exc).__name__}: {exc}"))
+            article = extract_web_article(page.body, page.final_url, page.content_type)
+        except UnsafeSourceUrlError:
+            errors.append(CrawlError(url, "该网址不是允许访问的公网地址。", "unsafe_url"))
             continue
-        pages.append(page)
+        except (httpx.HTTPError, OSError, ValueError) as exc:
+            if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code == 404:
+                errors.append(CrawlError(url, "页面不存在或文章已删除。", "content_unavailable"))
+                continue
+            if render_page is None or (
+                isinstance(exc, WebContentError)
+                and exc.code in {"too_large", "unsupported_content", "content_unavailable"}
+            ):
+                errors.append(CrawlError(
+                    url,
+                    str(exc) if isinstance(exc, WebContentError) else "网页请求失败，请稍后重试。",
+                    exc.code if isinstance(exc, WebContentError) else "fetch_failed",
+                ))
+                continue
+            try:
+                page = render_page(url)
+                article = extract_web_article(page.body, page.final_url, page.content_type)
+                acquisition = "browser"
+            except (httpx.HTTPError, OSError, ValueError) as rendered_error:
+                errors.append(CrawlError(
+                    url,
+                    str(rendered_error) if isinstance(rendered_error, WebContentError)
+                    else "浏览器未能读取有效正文，请打开浏览器完成验证或登录后再导入。",
+                    rendered_error.code if isinstance(rendered_error, WebContentError)
+                    else "browser_required",
+                ))
+                continue
+        pages.append(CrawledPage(
+            requested_url=page.requested_url, final_url=page.final_url,
+            content_type=page.content_type, body=page.body,
+            article=article, acquisition=acquisition,
+        ))
         if depth >= policy.max_depth or page.content_type not in {
             "text/html",
             "application/xhtml+xml",
@@ -100,6 +149,8 @@ def crawl_site(start_url: str, policy: CrawlPolicy) -> CrawlResult:
                 continue
             queued.add(candidate)
             queue.append((candidate, depth + 1))
+            if len(queued) >= policy.max_pages:
+                break
     return CrawlResult(pages=tuple(pages), errors=tuple(errors))
 
 
