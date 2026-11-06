@@ -49,6 +49,21 @@ content.
 - `storage`: immutable content-addressed source objects.
 - `infra`: container initialization.
 
+## 离线模拟钉钉导入（MIAN-2）
+
+当前仅有 **模拟钉钉，未连接真实钉钉**。在 API 环境显式设置
+`WIKI_AGENT_DINGTALK_MODE=mock` 并重启，登录用户端进入“模拟钉钉导入”，
+单选固定非敏感 A/B 文档后导入，再通过正常 Wiki 列表重新打开。
+标题、正文两段及模拟来源标签持久保存到 Git；不需要 AppKey/AppSecret、
+LLM、Redis 或 worker，不调用真实钉钉 API。默认 `disabled`，`real` 会拒绝配置加载。
+
+仅同一请求 UUID 防重放，不做源文档去重/同步；不同明确动作可创建另一篇新页，旧页不覆盖。
+索引状态为 `deferred`（正常 Wiki 阅读不依赖索引）。Git/DB部分完成时界面保留
+原请求ID与已知页面，只读查询，不自动再次导入。关闭模拟模式不会删除已有页面。
+无数据库迁移、页面schema变化或新增真实SDK；真实验收全部后置。
+
+实际自测与本地浏览器重开证据见 `delivery/MIAN-2/04-编码与自测.md`。
+
 ## Local development
 
 Prerequisites:

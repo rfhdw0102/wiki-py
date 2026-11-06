@@ -15,7 +15,7 @@ from wiki_agent.api.schemas import (
 )
 from wiki_agent.config import get_settings
 from wiki_agent.llm import AnswerResult, ModelFactory, WikiAnswerer
-from wiki_agent.models import AuditLog, Draft, DraftStatus, FeatureFlag, QueryLog
+from wiki_agent.models import AgentRun, AuditLog, Draft, DraftStatus, FeatureFlag, QueryLog
 from wiki_agent.search.fusion import FusedHit
 from wiki_agent.search.repository import (
     RawSearchRepository,
@@ -325,6 +325,12 @@ def publish_draft(
         raise HTTPException(status_code=404, detail="Draft not found")
     if draft.created_by_id != user.id:
         raise HTTPException(status_code=403, detail="Only the draft creator can publish it")
+    # The mock action owns publication even if Git succeeded before DB finalization.
+    mock_runs = db.scalars(select(AgentRun).where(AgentRun.kind == "dingtalk_mock_import"))
+    if any((run.result_json or {}).get("draft_id") == draft_id for run in mock_runs):
+        raise HTTPException(
+            status_code=409, detail="模拟钉钉动作不能从草稿再次发布；请查询原导入请求"
+        )
     if draft.status is not DraftStatus.OPEN:
         raise HTTPException(status_code=409, detail="Draft is not open")
     try:

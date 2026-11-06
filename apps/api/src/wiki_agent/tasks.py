@@ -75,6 +75,8 @@ def _parse_source_run(db: Session, run_id: str) -> dict[str, object]:
     run = db.get(AgentRun, run_id)
     if run is None:
         raise ValueError(f"agent run {run_id} does not exist")
+    if run.kind == "dingtalk_mock_import":
+        raise ValueError("模拟钉钉动作不能从通用任务重新执行；请查询原导入请求")
     run.status = "running"
     db.add(AgentEvent(run_id=run.id, kind="run.started", payload={}))
     db.commit()
@@ -104,6 +106,8 @@ def _prepare_compilation_source(db: Session, run_id: str) -> dict[str, object]:
     run = db.get(AgentRun, run_id)
     if run is None:
         raise ValueError(f"agent run {run_id} does not exist")
+    if run.kind == "dingtalk_mock_import":
+        raise ValueError("模拟钉钉动作不能从通用任务重新执行；请查询原导入请求")
     try:
         revision_id = str(run.input_json["source_revision_id"])
         revision = db.get(SourceRevision, revision_id)
@@ -156,6 +160,8 @@ def _crawl_site(db: Session, run_id: str) -> dict[str, object]:
     run = db.get(AgentRun, run_id)
     if run is None:
         raise ValueError(f"agent run {run_id} does not exist")
+    if run.kind == "dingtalk_mock_import":
+        raise ValueError("模拟钉钉动作不能从通用任务重新执行；请查询原导入请求")
     run.status = "running"
     db.add(AgentEvent(run_id=run.id, kind="run.started", payload={}))
     db.commit()
@@ -229,6 +235,8 @@ def _compile_source(db: Session, run_id: str) -> dict[str, str]:
     run = db.get(AgentRun, run_id)
     if run is None:
         raise ValueError(f"agent run {run_id} does not exist")
+    if run.kind == "dingtalk_mock_import":
+        raise ValueError("模拟钉钉动作不能从通用任务重新执行；请查询原导入请求")
     existing_draft_id = (
         str(run.result_json["draft_id"])
         if run.result_json is not None and "draft_id" in run.result_json

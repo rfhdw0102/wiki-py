@@ -122,6 +122,60 @@ export interface AgentRun {
   created_at: string;
 }
 
+export type DingtalkDocumentId = "mock-a" | "mock-b";
+
+export interface DingtalkStatus {
+  mode: "disabled" | "mock";
+  simulation: boolean;
+  real_connection: "not_implemented";
+  fixture_version: "fixture-v1" | null;
+}
+
+export interface DingtalkDocuments {
+  mode: "mock";
+  simulation: true;
+  notice: string;
+  fixture_version: "fixture-v1";
+  items: Array<{ document_id: DingtalkDocumentId; title: string }>;
+}
+
+export interface DingtalkImportRequest {
+  document_id: DingtalkDocumentId;
+  request_id: string;
+}
+
+export interface DingtalkImportStatus {
+  request_id: string;
+  state: "running" | "prepared" | "publishing" | "published" | "failed" | "outcome_unknown";
+  mode: "mock";
+  simulation: true;
+  real_connection: "not_implemented";
+  published?: boolean | null;
+  page_path?: string | null;
+  page_id?: string | null;
+  published_commit?: string | null;
+  source_revision_id?: string | null;
+  index_status?: "deferred" | null;
+}
+
+export interface DingtalkImportResult extends DingtalkImportStatus {
+  state: "published";
+  page_path: string;
+  page_id: string;
+  published_commit: string;
+  source_revision_id: string;
+  index_status: "deferred";
+}
+
+export interface DingtalkImportErrorDetail {
+  code: string;
+  message: string;
+  request_id?: string;
+  published?: boolean | null;
+  page_path?: string | null;
+  published_commit?: string | null;
+}
+
 export interface FeatureFlag {
   key: string;
   enabled: boolean;
@@ -307,6 +361,21 @@ export const api = {
     request<SourceRevision[]>(`/sources/${encodeURIComponent(sourceId)}/revisions`),
   listSourceSpans: (revisionId: string) =>
     request<SourceSpan[]>(`/sources/revisions/${encodeURIComponent(revisionId)}/spans`),
+
+  dingtalkStatus: () =>
+    request<DingtalkStatus>("/integrations/dingtalk/status"),
+  listDingtalkDocuments: () =>
+    request<DingtalkDocuments>("/integrations/dingtalk/documents"),
+  importDingtalkDocument: (payload: DingtalkImportRequest) =>
+    request<DingtalkImportResult>("/integrations/dingtalk/imports", {
+      method: "POST",
+      // Serialize once: request() reuses this body after a 401 refresh.
+      body: json(payload)
+    }),
+  readDingtalkImport: (requestId: string) =>
+    request<DingtalkImportStatus>(
+      `/integrations/dingtalk/imports/${encodeURIComponent(requestId)}`
+    ),
 
   listWikiPages: () => request<WikiPageSummary>("/wiki/pages"),
   readWikiPage: (path: string) =>

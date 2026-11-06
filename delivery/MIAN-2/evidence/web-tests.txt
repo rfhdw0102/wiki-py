@@ -1,0 +1,61 @@
+
+> llm-wiki-agent@ test:web /Users/sm5096/multica_workspaces/mianrushuan-09b409eddc47/mian-2-f5069b9e737f/workdir/wiki-py
+> pnpm -r test
+
+Scope: 3 of 4 workspace projects
+apps/user-web test$ node --experimental-transform-types --test tests/*.test.mjs
+apps/user-web test: (node:58313) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+apps/user-web test: (Use `node --trace-warnings ...` to show where the warning was created)
+apps/user-web test: (node:58313) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/sm5096/multica_workspaces/mianrushuan-09b409eddc47/mian-2-f5069b9e737f/workdir/wiki-py/apps/user-web/src/app/dingtalk/import.ts is not specified and it doesn't parse as CommonJS.
+apps/user-web test: Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+apps/user-web test: To eliminate this warning, add "type": "module" to /Users/sm5096/multica_workspaces/mianrushuan-09b409eddc47/mian-2-f5069b9e737f/workdir/wiki-py/apps/user-web/package.json.
+apps/user-web test: ✔ disabled status does not fetch a mock catalog or pretend a real connection (0.577125ms)
+apps/user-web test: ✔ mock catalog is loaded from the server after status (0.448333ms)
+apps/user-web test: ✔ unselected/unknown choices create no action; A and B produce exactly one selected ID (0.119708ms)
+apps/user-web test: ✔ 401 refresh replays identical selected B JSON/UUID with cookies and CSRF (15.104083ms)
+apps/user-web test: ✔ shared status/catalog/history wrappers use authenticated GET without import writes (0.566125ms)
+apps/user-web test: ✔ published result requires normal Wiki GET and produces a normal path link (0.244333ms)
+apps/user-web test: ✔ mode mock/index deferred alone do not constitute published success (0.112042ms)
+apps/user-web test: ✔ unreadable/mismatched/missing normal page never claims complete success (0.343458ms)
+apps/user-web test: ✔ published=true errors preserve action/path/commit and GET checking never imports again (0.272625ms)
+apps/user-web test: ✔ published=null errors preserve action/path/commit and GET checking never imports again (0.127125ms)
+apps/user-web test: ✔ lost response retains UUID, and a failed GET retains previously known publication (0.209417ms)
+apps/user-web test: ✔ read-only check can confirm published state via normal Wiki read (0.119625ms)
+apps/user-web test: ✔ either simulation tag adds a warning badge; old untagged pages remain unchanged (4.254709ms)
+apps/user-web test: ✔ UI binds server radios without a default and keeps UUID-producing import disabled after an attempt (1.243708ms)
+apps/user-web test: ✔ task queue labels the synchronous mock kind and has no generic resume/cancel actions (0.559625ms)
+apps/user-web test: (node:58314) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+apps/user-web test: (Use `node --trace-warnings ...` to show where the warning was created)
+apps/user-web test: (node:58314) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/sm5096/multica_workspaces/mianrushuan-09b409eddc47/mian-2-f5069b9e737f/workdir/wiki-py/apps/user-web/src/app/wiki/import-files.ts is not specified and it doesn't parse as CommonJS.
+apps/user-web test: Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+apps/user-web test: To eliminate this warning, add "type": "module" to /Users/sm5096/multica_workspaces/mianrushuan-09b409eddc47/mian-2-f5069b9e737f/workdir/wiki-py/apps/user-web/package.json.
+apps/user-web test: ✔ folder selection includes nested supported files and explicitly lists skipped files (1.94675ms)
+apps/user-web test: ✔ dropped folders read every directory-reader batch, including nested directories (0.388417ms)
+apps/user-web test: ✔ directory read failures surface instead of silently losing files (2.060375ms)
+apps/user-web test: ✔ partial folder support never silently drops a dragged directory (0.2585ms)
+apps/user-web test: (node:58315) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+apps/user-web test: (Use `node --trace-warnings ...` to show where the warning was created)
+apps/user-web test: (node:58315) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/sm5096/multica_workspaces/mianrushuan-09b409eddc47/mian-2-f5069b9e737f/workdir/wiki-py/apps/user-web/src/app/conflicts/review.ts is not specified and it doesn't parse as CommonJS.
+apps/user-web test: Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+apps/user-web test: To eliminate this warning, add "type": "module" to /Users/sm5096/multica_workspaces/mianrushuan-09b409eddc47/mian-2-f5069b9e737f/workdir/wiki-py/apps/user-web/package.json.
+apps/user-web test: ✔ publishing accepts an optional explanation while rejection still needs a reason (0.501958ms)
+apps/user-web test: ✔ rejection explains protected references and partial file cleanup failures (0.122291ms)
+apps/user-web test: ✔ only drafts awaiting a decision appear in the review list (0.552625ms)
+apps/user-web test: ✔ conflicts and unrelated review risks are explained independently (0.140208ms)
+apps/user-web test: (node:58316) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+apps/user-web test: (Use `node --trace-warnings ...` to show where the warning was created)
+apps/user-web test: (node:58316) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/sm5096/multica_workspaces/mianrushuan-09b409eddc47/mian-2-f5069b9e737f/workdir/wiki-py/apps/user-web/src/app/sources/source-preview.ts is not specified and it doesn't parse as CommonJS.
+apps/user-web test: Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+apps/user-web test: To eliminate this warning, add "type": "module" to /Users/sm5096/multica_workspaces/mianrushuan-09b409eddc47/mian-2-f5069b9e737f/workdir/wiki-py/apps/user-web/package.json.
+apps/user-web test: ✔ source preview renders every original heading once at its original level (7.969667ms)
+apps/user-web test: ✔ continuation chunks do not turn repeated heading metadata into new headings (0.079166ms)
+apps/user-web test: ✔ unparsed sources fall back to the original text without fabricating content (0.071167ms)
+apps/user-web test: ℹ tests 26
+apps/user-web test: ℹ suites 0
+apps/user-web test: ℹ pass 26
+apps/user-web test: ℹ fail 0
+apps/user-web test: ℹ cancelled 0
+apps/user-web test: ℹ skipped 0
+apps/user-web test: ℹ todo 0
+apps/user-web test: ℹ duration_ms 276.048
+apps/user-web test: Done

@@ -1,0 +1,13 @@
+{
+  "request_id": "6c9df2b9-1a96-4d0e-96aa-c48ac1552d63",
+  "state": "published",
+  "mode": "mock",
+  "simulation": true,
+  "real_connection": "not_implemented",
+  "page_path": "sources/dingtalk-mock-6c9df2b9-1a96-4d0e-96aa-c48ac1552d63.md",
+  "page_id": "sim-dt-6c9df2b9-1a96-4d0e-96aa-c48ac1552d63",
+  "source_revision_id": "5e3aa82e-394e-4ad2-9dee-b55025f65f7c",
+  "draft_id": "9ea6cee2-29f1-4f42-8d5c-e29309b49c8b",
+  "index_status": "deferred",
+  "published_commit": "9e8a8a3d04959d725dcfdc5e6eaea3ce799cd277"
+}

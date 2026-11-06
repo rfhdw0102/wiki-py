@@ -1,0 +1,32 @@
+diff --git a/wiki/sources/dingtalk-mock-6c9df2b9-1a96-4d0e-96aa-c48ac1552d63.md b/wiki/sources/dingtalk-mock-6c9df2b9-1a96-4d0e-96aa-c48ac1552d63.md
+new file mode 100644
+index 0000000..36e0b4a
+--- /dev/null
++++ b/wiki/sources/dingtalk-mock-6c9df2b9-1a96-4d0e-96aa-c48ac1552d63.md
+@@ -0,0 +1,26 @@
++---
++id: sim-dt-6c9df2b9-1a96-4d0e-96aa-c48ac1552d63
++type: source
++title: 模拟文档A：项目说明
++created: '2026-11-06T05:03:11.179839Z'
++updated: '2026-11-06T05:03:11.179839Z'
++sources: []
++related: []
++citations:
++  sim-1:
++    source_revision_id: 5e3aa82e-394e-4ad2-9dee-b55025f65f7c
++    span_id: 5e3aa82e-394e-4ad2-9dee-b55025f65f7c:0
++  sim-2:
++    source_revision_id: 5e3aa82e-394e-4ad2-9dee-b55025f65f7c
++    span_id: 5e3aa82e-394e-4ad2-9dee-b55025f65f7c:1
++tags:
++- dingtalk-mock
++- simulation
++status: published
++---
++
++这是模拟文档 A 的第一段，说明本地导入流程。English: Alpha only.
++
++这是模拟文档 A 的第二段，保留中文、English 和标点；顺序不得改变。
++
++来源：模拟钉钉（未连接真实钉钉）。 [^sim-1] [^sim-2]

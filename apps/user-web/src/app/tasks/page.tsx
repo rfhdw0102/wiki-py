@@ -13,6 +13,7 @@ import {
   type Source
 } from "@wiki-agent/web-ui";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
+import { runKindLabel } from "./run-kind";
 
 const ACTIVE_STATUSES = new Set(["queued", "running", "pending"]);
 
@@ -200,7 +201,7 @@ export default function TasksPage() {
           <DataTable<AgentRun>
             columns={[
               { key: "id", label: "Run", render: (value) => String(value).slice(0, 8) },
-              { key: "kind", label: "Kind" },
+              { key: "kind", label: "Kind", render: (value) => runKindLabel(String(value)) },
               { key: "created_at", label: "Created", render: (value) => new Date(String(value)).toLocaleString() },
               {
                 key: "status",

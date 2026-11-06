@@ -1,8 +1,11 @@
+import fcntl
 import os
 import subprocess
 import tempfile
 import threading
-from collections.abc import Mapping
+import time
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -23,6 +26,14 @@ class WikiRepositoryError(RuntimeError):
 
 
 class StaleWikiRevisionError(WikiRepositoryError):
+    pass
+
+
+class PageExistsError(WikiRepositoryError):
+    pass
+
+
+class PublishBusyError(WikiRepositoryError):
     pass
 
 
@@ -110,7 +121,7 @@ class WikiRepository:
             raise WikiRepositoryError("knowledge schema cannot be empty")
         if len(content) > 200_000:
             raise WikiRepositoryError("knowledge schema exceeds 200000 characters")
-        with self._write_lock:
+        with self._publication_lock():
             current = self.head()
             if current != base_commit:
                 raise StaleWikiRevisionError(
@@ -148,16 +159,26 @@ class WikiRepository:
         author_name: str,
         author_email: str,
         message: str,
+        create_only: bool = False,
     ) -> PublishResult:
         if not files:
             raise WikiRepositoryError("publish requires at least one file change")
+        if create_only and (len(files) != 1 or any(value is None for value in files.values())):
+            raise WikiRepositoryError("create-only publish requires exactly one non-delete path")
         normalized = {str(validate_wiki_path(path)): content for path, content in files.items()}
-        with self._write_lock:
+        with self._publication_lock():
             current = self.head()
             if current != base_commit:
                 raise StaleWikiRevisionError(
                     f"draft is based on {base_commit}, but current Wiki is {current}"
                 )
+            if create_only:
+                path = next(iter(normalized))
+                tracked = self._run(
+                    "--literal-pathspecs", "ls-tree", "--name-only", current, "--", f"wiki/{path}"
+                )
+                if tracked.stdout.strip() or os.path.lexists(self.wiki_root / path):
+                    raise PageExistsError(f"Wiki page already exists: {path}")
             with tempfile.TemporaryDirectory(prefix="wiki-publish-") as temp_dir:
                 working_root = Path(temp_dir) / "knowledge"
                 self._clone(working_root)
@@ -181,6 +202,35 @@ class WikiRepository:
                 self._run("fetch", str(working_root), "main")
                 self._run("merge", "--ff-only", "FETCH_HEAD")
                 return PublishResult(commit=commit, changed_paths=tuple(sorted(normalized)))
+
+    @contextmanager
+    def _publication_lock(self) -> Iterator[None]:
+        deadline = time.monotonic() + 5.0
+        if not self._write_lock.acquire(timeout=5.0):
+            raise PublishBusyError("Wiki publication lock could not be acquired within 5 seconds")
+        try:
+            lock_path = Path(self._run("rev-parse", "--git-path", "publish.lock").stdout.strip())
+            if not lock_path.is_absolute():
+                lock_path = self.root / lock_path
+            # Keep the lock file in place: unlinking it lets later writers lock a new inode.
+            with lock_path.open("a") as lock_file:
+                while True:
+                    try:
+                        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        break
+                    except BlockingIOError:
+                        remaining = deadline - time.monotonic()
+                        if remaining <= 0:
+                            raise PublishBusyError(
+                                "Wiki publication lock could not be acquired within 5 seconds"
+                            ) from None
+                        time.sleep(min(0.05, remaining))
+                try:
+                    yield
+                finally:
+                    fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+        finally:
+            self._write_lock.release()
 
     def validate_changes(self, files: Mapping[str, str | None], *, base_commit: str) -> None:
         normalized = {str(validate_wiki_path(path)): content for path, content in files.items()}

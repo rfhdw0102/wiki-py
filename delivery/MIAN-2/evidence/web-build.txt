@@ -1,0 +1,66 @@
+
+> llm-wiki-agent@ build:web /Users/sm5096/multica_workspaces/mianrushuan-09b409eddc47/mian-2-f5069b9e737f/workdir/wiki-py
+> pnpm --filter @wiki-agent/user-web --filter @wiki-agent/admin-web build
+
+Scope: 2 of 4 workspace projects
+apps/user-web build$ next build
+apps/admin-web build$ next build
+apps/user-web build:    ▲ Next.js 15.5.25
+apps/admin-web build:    ▲ Next.js 15.5.25
+apps/user-web build:    Creating an optimized production build ...
+apps/admin-web build:    Creating an optimized production build ...
+apps/admin-web build:  ✓ Compiled successfully in 1432ms
+apps/admin-web build:    Linting and checking validity of types ...
+apps/user-web build:  ✓ Compiled successfully in 2.5s
+apps/user-web build:    Linting and checking validity of types ...
+apps/admin-web build:    Collecting page data ...
+apps/admin-web build:    Generating static pages (0/13) ...
+apps/user-web build:    Collecting page data ...
+apps/admin-web build:    Generating static pages (3/13)
+apps/admin-web build:    Generating static pages (6/13)
+apps/admin-web build:    Generating static pages (9/13)
+apps/admin-web build:  ✓ Generating static pages (13/13)
+apps/admin-web build:    Finalizing page optimization ...
+apps/admin-web build:    Collecting build traces ...
+apps/user-web build:    Generating static pages (0/12) ...
+apps/user-web build:    Generating static pages (3/12)
+apps/user-web build:    Generating static pages (6/12)
+apps/user-web build:    Generating static pages (9/12)
+apps/user-web build:  ✓ Generating static pages (12/12)
+apps/user-web build:    Finalizing page optimization ...
+apps/user-web build:    Collecting build traces ...
+apps/admin-web build: Route (app)                                 Size  First Load JS
+apps/admin-web build: ┌ ○ /                                    1.67 kB         111 kB
+apps/admin-web build: ├ ○ /_not-found                            991 B         103 kB
+apps/admin-web build: ├ ○ /audit                               1.37 kB         111 kB
+apps/admin-web build: ├ ○ /feature-flags                       1.55 kB         111 kB
+apps/admin-web build: ├ ○ /jobs                                1.64 kB         111 kB
+apps/admin-web build: ├ ○ /knowledge-gaps                      1.41 kB         111 kB
+apps/admin-web build: ├ ○ /login                                  1 kB         110 kB
+apps/admin-web build: ├ ○ /models                              2.57 kB         112 kB
+apps/admin-web build: ├ ○ /schema                              1.54 kB         111 kB
+apps/admin-web build: ├ ○ /sources                             1.63 kB         111 kB
+apps/admin-web build: └ ○ /users                               2.17 kB         111 kB
+apps/admin-web build: + First Load JS shared by all             102 kB
+apps/admin-web build:   ├ chunks/112-b4c32a9af0ee8fd8.js       46.2 kB
+apps/admin-web build:   ├ chunks/9e69aa56-f4a1dd1a9610c5d3.js  54.2 kB
+apps/admin-web build:   └ other shared chunks (total)          1.92 kB
+apps/admin-web build: ○  (Static)  prerendered as static content
+apps/admin-web build: Done
+apps/user-web build: Route (app)                                 Size  First Load JS
+apps/user-web build: ┌ ○ /                                    1.74 kB         111 kB
+apps/user-web build: ├ ○ /_not-found                            991 B         103 kB
+apps/user-web build: ├ ○ /conflicts                           1.35 kB         111 kB
+apps/user-web build: ├ ○ /dingtalk                            3.09 kB         112 kB
+apps/user-web build: ├ ○ /drafts                              1.79 kB         111 kB
+apps/user-web build: ├ ○ /login                                 987 B         110 kB
+apps/user-web build: ├ ○ /search                              2.02 kB         111 kB
+apps/user-web build: ├ ○ /sources                             2.31 kB         111 kB
+apps/user-web build: ├ ○ /tasks                                2.7 kB         112 kB
+apps/user-web build: └ ○ /wiki                                1.84 kB         111 kB
+apps/user-web build: + First Load JS shared by all             102 kB
+apps/user-web build:   ├ chunks/112-b4c32a9af0ee8fd8.js       46.2 kB
+apps/user-web build:   ├ chunks/9e69aa56-f4a1dd1a9610c5d3.js  54.2 kB
+apps/user-web build:   └ other shared chunks (total)          1.92 kB
+apps/user-web build: ○  (Static)  prerendered as static content
+apps/user-web build: Done

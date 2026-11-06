@@ -14,6 +14,7 @@ const navItems: NavItem[] = [
   { href: "/", label: "Overview", shortLabel: "OV" },
   { href: "/sources", label: "Sources", shortLabel: "SO" },
   { href: "/wiki", label: "Wiki", shortLabel: "WI" },
+  { href: "/dingtalk", label: "模拟钉钉导入", shortLabel: "DT" },
   { href: "/drafts", label: "Drafts", shortLabel: "DR" },
   { href: "/tasks", label: "Agent tasks", shortLabel: "AT" },
   { href: "/conflicts", label: "Conflicts", shortLabel: "CF" },

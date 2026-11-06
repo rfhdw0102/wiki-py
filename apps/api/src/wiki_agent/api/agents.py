@@ -200,7 +200,9 @@ async def stream_run_events(
                     "data": json.dumps(event.payload, ensure_ascii=False),
                 }
             if current_run is None or (
-                current_run.status in {"failed", "completed", "awaiting_review"} and not events
+                current_run.status
+                in {"failed", "completed", "awaiting_review", "published", "outcome_unknown"}
+                and not events
             ):
                 break
             await asyncio.sleep(1)

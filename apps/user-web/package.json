@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "node --experimental-transform-types --test tests/*.test.mjs"
   },
   "dependencies": {
     "@wiki-agent/web-ui": "workspace:*",
@@ -18,6 +19,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
     "typescript": "^5.7.0"
   }
 }

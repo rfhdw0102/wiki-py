@@ -1,0 +1,17 @@
+{
+  "mode": "mock",
+  "ports": [
+    18082,
+    13082
+  ],
+  "before": "2137c98ae75025b8b9677d14cd91876540c55797",
+  "after": "9e8a8a3d04959d725dcfdc5e6eaea3ce799cd277",
+  "pages": [
+    "sources/dingtalk-mock-6c9df2b9-1a96-4d0e-96aa-c48ac1552d63.md",
+    "sources/existing-c.md"
+  ],
+  "old_c_unchanged": true,
+  "api_restart_relogin_refresh": "pass",
+  "browser": "pass",
+  "models_configured": false
+}

@@ -1,6 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     max_upload_bytes: int = 50 * 1024 * 1024
     raw_rag_enabled: bool = True
     auto_create_schema: bool = True
+    dingtalk_mode: Literal["disabled", "mock"] = "disabled"
+
+    @field_validator("dingtalk_mode", mode="before")
+    @classmethod
+    def validate_dingtalk_mode(cls, value: object) -> object:
+        if value not in {"disabled", "mock"}:
+            raise ValueError("WIKI_AGENT_DINGTALK_MODE must be disabled or mock; 真实钉钉尚未实现")
+        return value
 
     @field_validator("cors_origins", mode="before")
     @classmethod

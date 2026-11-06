@@ -10,7 +10,8 @@ import {
   type WikiPage,
   useApiResource
 } from "@wiki-agent/web-ui";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { simulationBadge } from "./simulation";
 
 export default function WikiBrowserPage() {
   const load = useCallback(() => api.listWikiPages(), []);
@@ -20,7 +21,7 @@ export default function WikiBrowserPage() {
   const [pageError, setPageError] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(false);
 
-  async function selectPage(path: string) {
+  const selectPage = useCallback(async (path: string) => {
     setSelectedPath(path);
     setPageLoading(true);
     setPageError(null);
@@ -32,7 +33,12 @@ export default function WikiBrowserPage() {
     } finally {
       setPageLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    const path = new URLSearchParams(window.location.search).get("path");
+    if (path) void selectPage(path);
+  }, [selectPage]);
 
   return (
     <>
@@ -72,6 +78,9 @@ export default function WikiBrowserPage() {
               {page ? (
                 <>
                   <StatusBadge tone="positive">{page.metadata.status}</StatusBadge>
+                  {simulationBadge(page.metadata.tags) ? (
+                    <StatusBadge tone="warning">{simulationBadge(page.metadata.tags)}</StatusBadge>
+                  ) : null}
                   <h2>{page.metadata.title}</h2>
                   <div className="muted">
                     {page.metadata.type} · updated {new Date(page.metadata.updated).toLocaleString()} ·{" "}

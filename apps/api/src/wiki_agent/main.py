@@ -11,6 +11,7 @@ from wiki_agent.api import (
     admin,
     agents,
     auth,
+    dingtalk,
     features,
     graph,
     knowledge_gaps,
@@ -127,6 +128,7 @@ async def verify_csrf(
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(sources.router, prefix="/api/v1")
+app.include_router(dingtalk.router, prefix="/api/v1")
 app.include_router(wiki.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 app.include_router(agents.router, prefix="/api/v1")
