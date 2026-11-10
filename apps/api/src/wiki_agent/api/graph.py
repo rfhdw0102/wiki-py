@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, text
 
-from wiki_agent.api.dependencies import CurrentUser, DbSession, require_feature
+from wiki_agent.api.dependencies import CurrentUser, CurrentWiki, DbSession, require_feature
 from wiki_agent.models import KnowledgeNode
 
 router = APIRouter(
@@ -16,12 +16,13 @@ router = APIRouter(
 @router.get("/nodes")
 def list_nodes(
     user: CurrentUser,
+    wiki: CurrentWiki,
     db: DbSession,
     kind: str | None = None,
     query: str | None = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ) -> list[dict[str, str]]:
-    statement = select(KnowledgeNode)
+    statement = select(KnowledgeNode).where(KnowledgeNode.wiki_id == wiki.id)
     if kind:
         statement = statement.where(KnowledgeNode.kind == kind)
     if query:
@@ -37,6 +38,7 @@ def list_nodes(
 def traverse_graph(
     node_id: str,
     user: CurrentUser,
+    wiki: CurrentWiki,
     db: DbSession,
     max_depth: Annotated[int, Query(ge=1, le=5)] = 2,
 ) -> dict[str, object]:
@@ -44,26 +46,28 @@ def traverse_graph(
         text(
             """
             WITH RECURSIVE traversal(node_id, depth, path) AS (
-                SELECT id, 0, ',' || id || ','
+                SELECT record_id, 0, ',' || record_id || ','
                 FROM knowledge_nodes
-                WHERE id = :node_id
+                WHERE wiki_id = :wiki_id AND id = :node_id
                 UNION ALL
                 SELECT edge.target_node_id,
                        traversal.depth + 1,
                        traversal.path || edge.target_node_id || ','
                 FROM traversal
-                JOIN knowledge_edges edge ON edge.source_node_id = traversal.node_id
+                JOIN knowledge_edges edge
+                  ON edge.source_node_id = traversal.node_id
+                 AND edge.wiki_id = :wiki_id
                 WHERE traversal.depth < :max_depth
                   AND traversal.path NOT LIKE '%,' || edge.target_node_id || ',%'
             )
             SELECT node.id, node.path, node.kind, node.title, MIN(traversal.depth) AS depth
             FROM traversal
-            JOIN knowledge_nodes node ON node.id = traversal.node_id
+            JOIN knowledge_nodes node ON node.record_id = traversal.node_id
             GROUP BY node.id, node.path, node.kind, node.title
             ORDER BY depth, node.title
             """
         ),
-        {"node_id": node_id, "max_depth": max_depth},
+        {"wiki_id": wiki.id, "node_id": node_id, "max_depth": max_depth},
     ).mappings()
     nodes = [
         {
