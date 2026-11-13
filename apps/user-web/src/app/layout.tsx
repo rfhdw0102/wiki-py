@@ -1,37 +1,40 @@
 import type { Metadata } from "next";
-import { AppShell, type NavItem } from "@wiki-agent/web-ui";
+import { AppShell, ThemeProvider, THEME_INIT_SCRIPT, type NavItem } from "@wiki-agent/web-ui";
 import "@wiki-agent/web-ui/styles.css";
+import "@xyflow/react/dist/style.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "LLM Wiki",
-    template: "%s | LLM Wiki"
+    default: "智库 Wiki",
+    template: "%s | 智库 Wiki"
   },
-  description: "Build and explore an AI-assisted knowledge workspace."
+  description: "将个人资料编译成可追溯、可演进的知识 Wiki。"
 };
 
 const navItems: NavItem[] = [
-  { href: "/", label: "Overview", shortLabel: "OV" },
-  { href: "/sources", label: "Sources", shortLabel: "SO" },
-  { href: "/wiki", label: "Wiki", shortLabel: "WI" },
-  { href: "/drafts", label: "Drafts", shortLabel: "DR" },
-  { href: "/tasks", label: "Agent tasks", shortLabel: "AT" },
-  { href: "/conflicts", label: "Conflicts", shortLabel: "CF" },
-  { href: "/search", label: "Search", shortLabel: "SE" }
+  { href: "/wiki", label: "知识 Wiki" },
+  { href: "/sources", label: "文件导入" },
+  { href: "/conflicts", label: "审核冲突" },
+  { href: "/search", label: "知识问答" },
+  { href: "/schema", label: "知识规范" },
+  { href: "/logs", label: "运行日志" }
 ];
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body>
-        <AppShell
-          navItems={navItems}
-          productName="LLM Wiki"
-          productSubtitle="Knowledge workspace"
-          theme="user"
-        >
-          {children}
-        </AppShell>
+        <ThemeProvider>
+          <AppShell
+            navItems={navItems}
+            productName="智库 Wiki"
+          >
+            {children}
+          </AppShell>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -7,6 +7,10 @@
     ".": "./src/index.ts",
     "./styles.css": "./src/styles.css"
   },
+  "dependencies": {
+    "lucide-react": "^1.47.0",
+    "rc-slider-captcha": "^1.9.0"
+  },
   "peerDependencies": {
     "next": "^15.0.0",
     "react": "^19.0.0",
