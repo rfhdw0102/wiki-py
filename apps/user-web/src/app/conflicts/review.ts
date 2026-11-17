@@ -1,4 +1,4 @@
-import type { AgentRun, Draft } from "@wiki-agent/web-ui";
+import type { AgentRun, Conflict, Draft } from "@wiki-agent/web-ui";
 
 const RISK_LABELS: Record<string, string> = {
   unresolved_conflicts: "存在待处理冲突",
@@ -17,10 +17,14 @@ const RISK_LABELS: Record<string, string> = {
   stale_base_commit: "Wiki 版本已变化"
 };
 
-export function reviewReasons(draft: Draft, runs: AgentRun[]): string[] {
-  const run = runs.find((item) =>
+export function draftCompilationRun(draft: Draft, runs: AgentRun[]): AgentRun | undefined {
+  return runs.find((item) =>
     item.kind === "compile_source" && item.result_json?.draft_id === draft.id
   );
+}
+
+export function reviewReasons(draft: Draft, runs: AgentRun[]): string[] {
+  const run = draftCompilationRun(draft, runs);
   const violations = run?.result_json?.risk_violations;
   const reasons = Array.isArray(violations)
     ? violations.filter((value): value is string => typeof value === "string")
@@ -31,6 +35,42 @@ export function reviewReasons(draft: Draft, runs: AgentRun[]): string[] {
     reasons.push(RISK_LABELS.unresolved_conflicts);
   }
   return reasons;
+}
+
+export type ConflictGroup = {
+  id: string;
+  title: string;
+  conflicts: Conflict[];
+  sources: string[];
+  updated: string;
+};
+
+function compareUpdated(a: string, b: string): number {
+  const difference = Date.parse(a) - Date.parse(b);
+  return Number.isNaN(difference) ? a.localeCompare(b) : difference;
+}
+
+export function groupConflicts(conflicts: Conflict[]): ConflictGroup[] {
+  const groups = new Map<string, ConflictGroup>();
+  for (const conflict of conflicts) {
+    const id = conflict.batch_id ? `batch:${conflict.batch_id}` : `page:${conflict.path}`;
+    const group = groups.get(id);
+    if (!group) {
+      groups.set(id, {
+        id,
+        title: conflict.batch_id ? conflict.batch_title || "批量导入的待处理冲突" : conflict.title,
+        conflicts: [conflict],
+        sources: [...new Set(conflict.sources)],
+        updated: conflict.updated
+      });
+    } else {
+      group.conflicts.push(conflict);
+      group.sources = [...new Set([...group.sources, ...conflict.sources])];
+      if (conflict.batch_title) group.title = conflict.batch_title;
+      if (compareUpdated(conflict.updated, group.updated) > 0) group.updated = conflict.updated;
+    }
+  }
+  return [...groups.values()].sort((a, b) => compareUpdated(b.updated, a.updated));
 }
 
 export function openDrafts(drafts: Draft[]): Draft[] {
