@@ -9,6 +9,8 @@ def test_answerer_reports_insufficient_evidence_without_calling_model() -> None:
     result = WikiAnswerer(model).answer("Unknown?", [], layer="wiki")
     assert result.insufficient_evidence is True
     assert result.citations == []
+    assert "知识库中没有找到" in result.answer
+    assert result.uncertainty and "导入相关资料" in result.uncertainty
 
 
 def test_evidence_renderer_rejects_too_small_context() -> None:
