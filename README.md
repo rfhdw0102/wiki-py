@@ -392,6 +392,11 @@ Interactive API documentation is available at `http://localhost:8000/docs`.
   `embedding_profile_id`, `reranker_profile_id`, `allow_raw_fallback`, `entry_node_ids`,
   and `limit`; the deterministic `/wiki/search` options `minimum_core_hits` and
   `require_cross_channel_top` do not apply to the autonomous agent.
+  The web app renders answers as Markdown. Inline citations and reference cards
+  link only to cited evidence: a Wiki page or the exact original revision and
+  span. Older answers without inline citation markers still have reference cards
+  when the saved evidence includes a target. When no evidence is found, the UI
+  explains the limitation in Chinese and suggests clarifying or importing sources.
 - `POST /api/v1/questions/conversations` creates an empty conversation in the selected
   Wiki. On its first question, the answer model generates a concise title in the user's
   language before retrieval; it is saved immediately and sent to the browser in run status

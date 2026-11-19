@@ -8,7 +8,6 @@ import {
   getActiveWikiId,
   type WikiQuestionConversation,
   type WikiQuestionConversationSummary,
-  type WikiQuestionResponse,
   useApiResource
 } from "@wiki-agent/web-ui";
 import {
@@ -19,6 +18,7 @@ import {
   useRef,
   useState
 } from "react";
+import { AnswerMessage } from "./answer-message";
 import {
   cancelledQuestion,
   completedQuestion,
@@ -953,64 +953,5 @@ export default function SearchPage() {
         </div>
       ) : null}
     </div>
-  );
-}
-
-function AnswerMessage({
-  answer,
-  copied,
-  onCopy
-}: {
-  answer: WikiQuestionResponse;
-  copied: boolean;
-  onCopy: () => void;
-}) {
-  return (
-    <>
-      <div className="assistant-answer">{answer.answer}</div>
-      {answer.uncertainty ? (
-        <div className="answer-uncertainty">{answer.uncertainty}</div>
-      ) : null}
-      {answer.degradations.map((degradation) => (
-        <div className="answer-uncertainty" key={degradation.channel}>
-          {degradation.reason}
-        </div>
-      ))}
-      {answer.evidence.length ? (
-        <div className="answer-evidence">
-          <strong>参考来源</strong>
-          <div className="evidence-list">
-            {answer.evidence.map((evidence, index) => (
-              <article className="evidence-card" key={`${evidence.document_id}-${index}`}>
-                <span>{index + 1}</span>
-                <div>
-                  <strong>
-                    {typeof evidence.metadata.title === "string"
-                      ? evidence.metadata.title
-                      : evidence.document_id}
-                  </strong>
-                  <small>{evidence.channels.join(" · ") || "知识库"}</small>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      ) : null}
-      <div className="assistant-message-actions">
-        <StatusBadge tone={answer.insufficient_evidence ? "warning" : "positive"}>
-          {answer.insufficient_evidence ? "证据不足" : "已有证据支持"}
-        </StatusBadge>
-        <span>
-          {answer.layer === "hybrid"
-            ? "Wiki + Raw 融合"
-            : answer.layer === "raw"
-              ? "Raw 兜底"
-              : "Wiki"}
-        </span>
-        {answer.reranker_used ? <span>已重排</span> : null}
-        <span>{answer.citations.length} 条引用</span>
-        <button onClick={onCopy} type="button">{copied ? "已复制" : "复制回答"}</button>
-      </div>
-    </>
   );
 }

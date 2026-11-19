@@ -104,6 +104,7 @@ function harness() {
         completedQuestion: status => status === "completed",
         failedQuestion: status => status === "failed"
       };
+      if (name === "./answer-message") return { AnswerMessage: () => null };
       return require(name);
     }
   });

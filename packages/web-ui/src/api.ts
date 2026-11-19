@@ -197,6 +197,7 @@ export interface WikiSearchResponse {
 
 export interface WikiQuestionResponse {
   answer: string;
+  clarification_question?: string | null;
   citations: string[];
   uncertainty: string | null;
   insufficient_evidence: boolean;

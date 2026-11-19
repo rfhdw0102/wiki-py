@@ -2055,6 +2055,21 @@ button.chat-conversation-title {
   white-space: pre-wrap;
 }
 
+.assistant-answer.wiki-rendered { white-space: normal; }
+.assistant-answer.wiki-rendered > :first-child { margin-top: 0; }
+.assistant-answer.wiki-rendered > :last-child { margin-bottom: 0; }
+.answer-table { overflow-x: auto; }
+
+.answer-citation {
+  background: var(--accent-soft);
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: 700;
+  margin-inline: 2px;
+  padding: 1px 3px;
+  vertical-align: super;
+}
+
 .answer-uncertainty,
 .chat-error,
 .chat-copy-error {
@@ -2119,6 +2134,14 @@ button.chat-conversation-title {
   justify-content: center;
   width: 22px;
 }
+
+a.evidence-card {
+  color: inherit;
+  text-decoration: none;
+}
+
+a.evidence-card:hover,
+a.evidence-card:focus-visible { border-color: var(--accent-strong); }
 
 .evidence-card > div {
   display: grid;
